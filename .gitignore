@@ -1,0 +1,8 @@
+.venv/
+build/
+.flet/
+*.db
+*.log
+*.apk
+*.aab
+__pycache__/
