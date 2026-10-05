@@ -1,119 +1,90 @@
 # Avisa Lá 📍
 
-> Nunca mais esqueça nada no lugar certo.
+Aplicativo de **lembretes contextuais**: em vez de avisar por horário, o Avisa Lá lembra você da tarefa **no lugar ou na situação certa** (ao chegar no supermercado, quando a bateria baixar, depois de acordar...).
 
-Aplicativo de **lembretes contextuais** feito em Python com [Flet](https://flet.dev). Em vez de avisar em um horário fixo, o Avisa Lá dispara o lembrete quando você **chega a um lugar** (por exemplo, o supermercado).
-
-Projeto em desenvolvimento, criado como estudo e com o objetivo de virar um app Android.
+Feito em Python com [Flet](https://flet.dev) 1.0, roda no navegador, no desktop e como app Android (APK).
 
 ## Funcionalidades
 
-- Cadastro de lembretes com um gatilho de contexto (ex.: "Ao chegar no Supermercado")
-- Alerta na tela quando o gatilho é ativado, com a distância até o local
-- Lembretes salvos em banco **SQLite** (continuam ali depois de fechar o app)
-- Simulador de GPS para testar os gatilhos sem sair de casa
-- Plano gratuito (limite de 3 lembretes) e plano **PRO** (sem limite e sem anúncios)
-- Banner de anúncios do **Google AdMob** no plano gratuito (apenas no celular)
+- Cadastro de lembretes com um gatilho de contexto:
+  - 📍 Ao chegar no Supermercado (GPS)
+  - 📍 Ao chegar no Trabalho (GPS)
+  - 🔋 Quando a bateria baixar de 20%
+  - ⏰ 30 minutos após acordar
+- Lembretes salvos em **SQLite** (continuam ali depois de fechar o app)
+- Alerta "AVISA LÁ! VOCÊ CHEGOU!" listando as tarefas do gatilho disparado
+- Plano grátis com limite de **3 lembretes** e anúncio (Google AdMob)
+- Plano **PRO** (simulado): sem limite e sem anúncios
+- **Simulador** na própria tela para testar os gatilhos sem sair de casa
+
+## Estado atual do projeto
+
+Este é um protótipo. Alguns pontos ainda são simulados:
+
+| Recurso | Situação |
+|---|---|
+| GPS | Simulado pelos botões do simulador (distância calculada com Haversine, raio de 100 m) |
+| Bateria / acordar | Simulados pelos botões do simulador |
+| Assinatura PRO | Apenas liga uma variável; falta integrar o Google Play Billing |
+| Banner AdMob | Usa o **ID de teste** do Google; só aparece no APK, não no navegador |
 
 ## Tecnologias
 
-| Item | Uso |
-| --- | --- |
-| Python 3.12 | Linguagem |
-| Flet 1.0.x | Interface (web, desktop e mobile) |
-| SQLite | Banco de dados local |
-| flet-ads | Banner do AdMob (Android e iOS) |
+- Python 3.12+
+- [Flet](https://flet.dev) 1.0.x
+- SQLite (módulo `sqlite3` da biblioteca padrão)
+- [flet-ads](https://pypi.org/project/flet-ads/) (opcional, só Android/iOS)
 
 ## Estrutura
 
 ```
-avisa-la/
-├── main.py            # App completo (interface, banco e lógica de GPS)
-├── requirements.txt   # Dependências (flet, flet-ads)
-└── README.md
+.
+├── main.py            # app completo (interface, banco e lógica de gatilhos)
+├── assets/            # logo e imagens
+├── pyproject.toml     # configuração do projeto e do build
+└── requirements.txt   # dependências
 ```
 
-## Como rodar no navegador
+## Como rodar
 
 ```bash
+git clone https://github.com/EdinaPrado/Avisa_la.git
+cd Avisa_la
+
 python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-flet run --web main.py
+
+python main.py
 ```
 
-O terminal mostra um endereço parecido com `http://127.0.0.1:PORTA`. Abra no navegador (a porta muda a cada execução).
+O app abre no navegador em `http://localhost:8550`.
 
-> **WSL:** as mensagens `xdg-open: not found` são só o aviso de que não há navegador para abrir sozinho. Copie o endereço e abra no navegador do Windows.
->
-> Use `--web`. Sem essa opção, o `flet run` tenta abrir uma janela desktop e baixar o cliente do Flet, o que falha em redes com proxy.
+Para acessar de outro aparelho na mesma rede Wi-Fi (por exemplo, o celular), abra `http://IP-DO-PC:8550`. No Windows com WSL2, pode ser necessário liberar a porta 8550 no firewall do Windows e do Hyper-V.
 
-No navegador, o espaço do banner aparece como um bloco de texto "Anúncio Google AdMob". O anúncio real só é exibido no app instalado no celular.
-
-## Como testar o GPS
-
-1. Crie um lembrete com o gatilho **"Ao chegar no Supermercado (GPS)"**.
-2. No painel **Simulador de GPS**, clique em **Ir p/ Supermercado**.
-3. O alerta 🚨 aparece com o lembrete e a distância, e o item é removido da lista e do banco.
-
-O gatilho dispara a até **200 metros** do local, com a distância calculada pela fórmula de Haversine. As coordenadas dos locais estão em `COORDENADAS_GATILHOS`, no início do `main.py`.
-
-## Gerar o APK (Android)
+## Como gerar o APK
 
 ```bash
-flet build apk --android-meta-data com.google.android.gms.ads.APPLICATION_ID=ca-app-pub-3940256099942544~3347511713
+source .venv/bin/activate
+flet build apk --arch arm64-v8a -v
 ```
 
-- O `flet-ads` precisa estar no `requirements.txt` para entrar no APK.
-- O `APPLICATION_ID` acima é o **ID de teste do Google**. Sem ele, o app com anúncios pode fechar ao abrir.
-- O APK sai em `build/apk/`.
-- No celular, o banco fica na pasta de dados do app (variável `FLET_APP_STORAGE_DATA`). No PC, fica ao lado do `main.py` (`avisala.db`).
+O arquivo fica em `build/apk/`. A primeira compilação baixa o Flutter, o Android SDK e o Gradle e pode demorar bastante.
 
-A primeira compilação baixa JDK, Flutter e Android SDK e pode levar bastante tempo. Ela usa vários GB de disco e de memória.
+**Dicas importantes:**
 
-## Problemas comuns
+- No WSL, compile a partir de uma pasta do **disco do Linux** (por exemplo `~/Avisa_la`), e não de `/mnt/c/...` ou do OneDrive. Nessas pastas o build falha por falta de permissões.
+- Deixe o PC sem dormir durante o build.
+- O `requirements.txt` precisa listar `flet` e `flet-ads`, senão o banner não entra no APK.
 
-**`CERTIFICATE_VERIFY_FAILED` ao baixar o JDK ou o Flutter**
-O Python não confia no certificado da rede (comum em rede de escola ou empresa). Use o pacote de certificados do `certifi` no terminal atual:
+## Antes de publicar na Play Store
 
-```bash
-export SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())")
-```
+- [ ] Trocar o ID de teste do AdMob (`ID_BANNER_ANDROID` em `main.py`) pelo ID real
+- [ ] Integrar o Google Play Billing no plano PRO
+- [ ] Trocar o GPS simulado por localização real do dispositivo
+- [ ] Definir ícone, nome e identificador do app no `pyproject.toml`
+- [ ] Assinar o app com uma chave de release própria
 
-**O build trava ou o computador fica lento (WSL)**
-- Rode o projeto dentro do WSL (`~/avisa-la`), e não em `/mnt/c/...` nem na pasta do OneDrive.
-- Limite a memória do Gradle e do Kotlin em `~/.gradle/gradle.properties`:
+## Licença
 
-  ```
-  org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g
-  kotlin.daemon.jvmargs=-Xmx2g
-  ```
-- Se precisar, aumente a memória do WSL em `C:\Users\SEU_USUARIO\.wslconfig` e rode `wsl --shutdown` em seguida.
-- Rode o build em segundo plano e acompanhe pelo log, assim fechar o terminal não interrompe nada:
-
-  ```bash
-  nohup flet build apk ... > build.log 2>&1 &
-  tail -f build.log
-  ```
-
-**`module 'flet' has no attribute 'app'` (ou `colors`, `icons`)**
-Código escrito para uma versão antiga do Flet. Na 1.0 use `ft.run(...)`, `ft.Colors`, `ft.Icons`, `page.show_dialog(...)` e `page.pop_dialog()`.
-
-## Limitações atuais
-
-- **GPS simulado.** A localização vem dos botões do simulador, não do aparelho.
-- **Só os gatilhos de GPS funcionam.** As opções "bateria abaixo de 20%" e "30 minutos após acordar" existem na lista, mas ainda não têm lógica de disparo.
-- **Plano PRO de demonstração.** O botão "Assinar PRO" só altera o estado na tela, não há cobrança real.
-- **O estado do PRO não é salvo.** Ao reabrir o app, ele volta ao plano gratuito.
-- **Anúncios de teste.** Os IDs do AdMob no código são os IDs públicos de teste do Google.
-
-## Próximos passos
-
-- [ ] Usar a localização real do aparelho (geolocalização e permissões)
-- [ ] Avisar com o app fechado (execução em segundo plano)
-- [ ] Implementar os gatilhos de bateria e de horário
-- [ ] Cobrança real do plano PRO (Google Play Billing) e persistência da assinatura
-- [ ] Trocar os IDs de teste do AdMob pelos IDs reais
-- [ ] Gerar o pacote `.aab` assinado e publicar na Google Play (exige política de privacidade)
-
-> **Segurança:** nunca suba para o repositório chaves de assinatura do app (`.jks`, `.keystore`) nem senhas.
+Defina a licença do projeto (por exemplo, MIT) e adicione o arquivo `LICENSE`.
