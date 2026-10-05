@@ -1,0 +1,8 @@
+.venv/
+build/
+.flet/
+__pycache__/
+*.pyc
+*.db
+arquivos_flet/storage/
+build.log
